@@ -16,17 +16,23 @@ class DB:
 
     def add_timestamp(self, timestamp):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO parts VALUES (" + timestamp.strftime('%s') + ", '', 0)")
+        print(timestamp)
+        cursor.execute("INSERT INTO parts VALUES ({:f}, '', 0)".format(timestamp))
+        self.db.commit()
+
+    def update_timestamp(self, old_timestamp, new_timestamp):
+        cursor = self.db.cursor()
+        cursor.execute("UPDATE parts SET timestamp='{:f}' WHERE timestamp={:f}".format(part_type, new_timestamp, old_timestamp))
         self.db.commit()
 
     def add_type(self, timestamp, part_type):
         cursor = self.db.cursor()
-        cursor.execute("UPDATE parts SET type='" + part_type + "' WHERE timestamp=" + timestamp.strftime('%s'))
+        cursor.execute("UPDATE parts SET type='{}' WHERE timestamp={:f}".format(part_type, timestamp))
         self.db.commit()
 
     def add_distance(self, timestamp, distance):
         cursor = self.db.cursor()
-        cursor.execute("UPDATE parts SET distance=" + str(distance) + " WHERE timestamp=" + timestamp.strftime('%s'))
+        cursor.execute("UPDATE parts SET distance='{}' WHERE timestamp={:f}".format(distance, timestamp))
         self.db.commit()
 
     def get_last_timestamp(self):
@@ -41,4 +47,3 @@ class DB:
 
     def close_db(self):
         self.db.close()
-

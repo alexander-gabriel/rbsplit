@@ -1,20 +1,21 @@
 import Tkinter as tk
-from datetime import datetime
+from datetime import datetime, timedelta
 from db import DB
 from ros import Ros
 
 class GUI:
     def __init__(self):
         self.db = DB()
-        self.last_timestamp = datetime.fromtimestamp(self.db.get_last_timestamp()[0] or 0.0)
+        self.last_timestamp = self.db.get_last_timestamp()[0] or 0.0
         self.current_timestamp = self.last_timestamp
         for entry in self.db.get_entries():
             print(entry)
         self.root = tk.Tk()
         button = tk.Button(self.root, text='add Timestamp', width=25, command=self.timestamp_callback)
+        button = tk.Button(self.root, text='update Timestamp', width=25, command=self.timestamp_update_callback)
         button.grid(column=1, row=1)
         text = tk.Text(self.root, height=1, width=40)
-        text.insert(tk.END, "Last Timestamp: " + self.last_timestamp.strftime("%s"))
+        text.insert(tk.END, "Last Timestamp: " + str(self.last_timestamp))
         text.grid(column=1, row=2)
         button = tk.Button(self.root, text='distance:  5', width=25, command=self.distance5_callback)
         button.grid(column=1, row=3)
@@ -37,6 +38,7 @@ class GUI:
         button = tk.Button(self.root, text='distance: 50', width=25, command=self.distance50_callback)
         button.grid(column=1, row=12)
         button = tk.Button(self.root, text='walking away', width=25, command=self.walk_away_callback)
+
         button.grid(column=2, row=1)
         button = tk.Button(self.root, text='walking towards', width=25, command=self.walk_towards_callback)
         button.grid(column=2, row=2)
@@ -45,6 +47,7 @@ class GUI:
         button = tk.Button(self.root, text='walking left', width=25, command=self.walk_left_callback)
         button.grid(column=2, row=4)
         button = tk.Button(self.root, text='walking away (crate)', width=25, command=self.walk_away_crate_callback)
+
         button.grid(column=3, row=1)
         button = tk.Button(self.root, text='walking towards (crate)', width=25, command=self.walk_towards_crate_callback)
         button.grid(column=3, row=2)
@@ -52,7 +55,9 @@ class GUI:
         button.grid(column=3, row=3)
         button = tk.Button(self.root, text='walking left (crate)', width=25, command=self.walk_left_crate_callback)
         button.grid(column=3, row=4)
+
         button = tk.Button(self.root, text='crate down away', width=25, command=self.crate_down_away_callback)
+
         button.grid(column=4, row=1)
         button = tk.Button(self.root, text='crate down side', width=25, command=self.crate_down_side_callback)
         button.grid(column=4, row=2)
@@ -102,11 +107,16 @@ class GUI:
         button.grid(column=7, row=8)
 
     def time_callback(self, msg):
-        self.current_timestamp = datetime(second=msg.header.stamp.secs, microsecond=msgs.header.stamp.nsecs)
+        self.current_timestamp = msg.clock.secs + msg.clock.nsecs * 1e-9
 
     def timestamp_callback(self):
         self.last_timestamp = self.current_timestamp
         self.db.add_timestamp(self.last_timestamp)
+
+    def timestamp_update_callback(self):
+        self.db.update_timestamp(self.last_timestamp, self.current_timestamp)
+        self.last_timestamp = self.current_timestamp
+
 
     def walk_away_callback(self):
         self.db.add_type(self.last_timestamp, "walk_away")
@@ -235,6 +245,6 @@ class GUI:
         self.db.add_distance(self.last_timestamp, 50)
 
     def start(self):
-        Ros(self.timestamp_callback)
+        Ros(self.time_callback)
         self.root.mainloop()
         self.db.close_db()
