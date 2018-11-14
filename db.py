@@ -22,7 +22,7 @@ class DB:
 
     def update_timestamp(self, old_timestamp, new_timestamp):
         cursor = self.db.cursor()
-        cursor.execute("UPDATE parts SET timestamp='{:f}' WHERE timestamp={:f}".format(part_type, new_timestamp, old_timestamp))
+        cursor.execute("UPDATE parts SET timestamp='{:f}' WHERE timestamp={:f}".format(new_timestamp, old_timestamp))
         self.db.commit()
 
     def add_type(self, timestamp, part_type):
